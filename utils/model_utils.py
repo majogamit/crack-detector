@@ -33,9 +33,9 @@ def predict_segmentation(image, conf):
 
     csv, df = count_instance(results, filenames, uuid)
 
-    csv = gr.File.update(value=csv, visible=True)
-    df = gr.DataFrame.update(value=df, visible=True)
-    md = gr.Markdown.update(visible=True)
+    csv = gr.File(value=csv, visible=True)
+    df = gr.DataFrame(value=df, visible=True)
+    md = gr.Markdown(visible=True)
 
     return get_all_file_paths(f'output/{uuid}'), csv, df, md
 

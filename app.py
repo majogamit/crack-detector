@@ -75,10 +75,10 @@ with gr.Blocks(theme=theme, css=css) as demo:
         lambda: [
             None,
             None,
-            gr.Markdown.update(visible=False),
-            gr.File.update(visible=False),
-            gr.DataFrame.update(visible=False),
-            gr.Slider.update(value=20)
+            gr.Markdown(visible=False),
+            gr.File(visible=False),
+            gr.DataFrame(visible=False),
+            gr.Slider(value=20)
         ],
         outputs=[image_input, image_output, md_result, csv_image, df_image, conf]
     )
