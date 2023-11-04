@@ -7,42 +7,9 @@ clear_all()
 
 # Define the color scheme/theme for the website
 theme = gr.themes.Soft(
-    primary_hue=gr.themes.Color(c100="#dbeafe", 
-                                c200="#bfdbfe", 
-                                c300="#93c5fd", 
-                                c400="#60a5fa", 
-                                c50="#eff6ff", 
-                                c500="#3b82f6", 
-                                c600="#2563eb", 
-                                c700="#1d4ed8", 
-                                c800="#1e40af", 
-                                c900="#00037c", 
-                                c950="#1d3660"),
-    secondary_hue=gr.themes.Color(c100="#fff6cc", 
-                                  c200="#fff2b2", 
-                                  c300="#ffee99", 
-                                  c400="#ffe97f", 
-                                  c50="#fffae5", 
-                                  c500="#ffe566", 
-                                  c600="#ffe14c", 
-                                  c700="#ffdd32", 
-                                  c800="#ffd819", 
-                                  c900="#ffd400", 
-                                  c950="#ffbf00"),
-    neutral_hue="neutral",
-    font=[gr.themes.GoogleFont('Inter'), 'ui-sans-serif', 'system-ui', 'sans-serif'],
-).set(
-    block_info_text_color="*neutral_950",
-    block_label_text_color="*primary_900",
-    block_title_text_color="*primary_900",
-    border_color_primary="*neutral_300",
-    button_primary_background_fill="*primary_900",
-    button_primary_background_fill_hover="*primary_700",
-    button_secondary_background_fill="*secondary_950",
-    button_secondary_background_fill_hover="*secondary_600",
-    block_background_fill="*neutral_100",
+    primary_hue="orange",
+    secondary_hue="sky",
 )
-
 #Custom css for styling
 css = """
     .size {
@@ -55,8 +22,8 @@ css = """
 # Create the Gradio interface using defined theme and CSS
 with gr.Blocks(theme=theme, css=css) as demo:
     # Title and description for the app
-    gr.Markdown("# Corrosion Segmentation")
-    gr.Markdown("Upload corrosion images and get segmented corrosion results.")
+    gr.Markdown("# Concrete Crack Detection and Segmentation")
+    gr.Markdown("Upload concrete crack images and get segmented results.")
 
     # Image tab
     with gr.Tab("Image"):
@@ -72,6 +39,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
                 #Confidence Score for prediction
                 conf = gr.Slider(value=20,step=5, label="Confidence", 
+                                   interactive=True)
+                distance = gr.Slider(value=5,step=5, label="Distance (m)", 
                                    interactive=True)
                 # Buttons for segmentation and clearing
                 with gr.Row():
