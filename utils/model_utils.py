@@ -11,7 +11,7 @@ def load_model():
     Returns:
         model: Loaded YOLO model.
     """
-    return YOLO('./weights/best_so_far.pt')
+    return YOLO('./weights/best.pt')
 
 def predict_segmentation(image, conf):
     """
