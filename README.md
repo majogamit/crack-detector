@@ -10,9 +10,9 @@ pinned: false
 license: mit
 ---
 
-# Corrosion Segmentation Web Application for Cawil.AI
+# Crack Segmentation Web Application
 
-Welcome to the Corrosion Segmentation Web Application! This tool is designed to segment corrosion in images. It's powered by Gradio and deployed on HuggingFace's Spaces platform. The underlying model and utilities are built using Python 3.10.9.
+Welcome to the Crack Segmentation Web Application! This tool is designed to segment concrete cracks in images. It's powered by Gradio and deployed on HuggingFace's Spaces platform. The underlying model and utilities are built using Python 3.10.9.
 
 ## Table of Contents
 
@@ -60,13 +60,11 @@ The application requires the following Python packages:
 
 ```
 gradio==4.1.1
-numpy==1.25.2
-pandas==2.0.3
-Pillow==10.0.0
-torch==2.0.1
-ultralytics==8.0.149
-opencv-python>=4.6.0
-shortuuid>=1.0.11
+numpy==1.26.1
+pandas==2.1.2
+Pillow==10.1.0
+shortuuid==1.0.11
+ultralytics==8.0.206
 ```
 
 These dependencies can also be found in the `requirements.txt` file in the repository.
