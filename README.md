@@ -1,10 +1,10 @@
 ---
-title: Corrosion Segmentation
-emoji: 🧱
+title: Crack Segmentation
+emoji: 🗿
 colorFrom: yellow
 colorTo: blue
 sdk: gradio
-sdk_version: 3.39.0
+sdk_version: 4.1.1
 app_file: app.py
 pinned: false
 license: mit
@@ -59,7 +59,7 @@ To run this application locally:
 The application requires the following Python packages:
 
 ```
-gradio==3.39.0
+gradio==4.1.1
 numpy==1.25.2
 pandas==2.0.3
 Pillow==10.0.0
