@@ -1,8 +1,6 @@
-gradio==3.39.0
-numpy==1.25.2
-pandas==2.0.3
-Pillow==10.0.0
-torch==2.0.1
-ultralytics==8.0.149
-opencv-python>=4.6.0
-shortuuid>=1.0.11
+gradio==4.1.1
+numpy==1.26.1
+pandas==2.1.2
+Pillow==10.1.0
+shortuuid==1.0.11
+ultralytics==8.0.206
