@@ -36,7 +36,7 @@ def predict_segmentation(image, conf):
         for m in r:
         # print(r.masks)
         # get array results
-            print(i)
+            # print(i)
             masks = r.masks.data
             boxes = r.boxes.data
             # extract classes
