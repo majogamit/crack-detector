@@ -67,13 +67,14 @@ with gr.Blocks(theme=theme, css=css) as demo:
         with gr.Row():
             with gr.Column():
                 # Input section for uploading images
-                video_input = gr.Video(
+                video_input = gr.Video(value='IMG_3636.mp4',
                     label="Video Input",
+                    format='mp4'
                 )
 
                 #Confidence Score for prediction
-                # conf = gr.Slider(value=20,step=5, label="Confidence",
-                #                    interactive=True)
+                conf = gr.Slider(value=20,step=5, label="Confidence",
+                                   interactive=True)
                 # distance = gr.Slider(value=5,step=5, label="Distance (m)",
                 #                    interactive=True)
                 # Buttons for segmentation and clearing
@@ -84,7 +85,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
             with gr.Column():
                 # Display section for segmented videos
                 video_output = gr.Video(label="Video Output")
-
+                video_results = gr.Textbox(label="Result")
                 # Display section for results
                 # md_result = gr.Markdown("**Results**", visible=False)
                 # csv_video = gr.File(label='CSV File', interactive=False, visible=False)
@@ -187,6 +188,87 @@ with gr.Blocks(theme=theme, css=css) as demo:
         res = f"Pattern: {orientation_category}\nWidth:\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
         # results = gr.Textbox(res, visible=True)
         return (f'output/{uuid}/image0.jpg'), res
+    def sample(video):
+        file = video.name
+        print(file)
+        return file
+    
+    def predict_segmentation_vid(video, conf):
+        """
+        Perform segmentation prediction on a list of images.
+        
+        Parameters:
+            image (list): List of images for segmentation.
+            conf (float): Confidence score for prediction.
+
+        Returns:
+            tuple: Paths of the processed images, CSV file, DataFrame, and Markdown.
+        """
+        uuid = str(shortuuid.uuid())
+        conf= conf * 0.01
+        # filename = image.name
+        results = model.predict('IMG_3636.mp4', conf=conf, save=True, project='output', name=uuid, stream=True)
+        processed_image_paths = []
+        annotated_image_paths = []
+        # Populate the dataframe with 
+        for result in results:
+            boxes = result.boxes  # Boxes object for bbox outputs
+            masks = result.masks  # Masks object for segmentation masks outputs
+            probs = result.probs  # Probs object for classification outputs
+        for i, r in enumerate(results):
+            instance_count = len(r)
+            for m in r:
+                masks = r.masks.data
+                boxes = r.boxes.data
+                clss = boxes[:, 5]
+                people_indices = torch.where(clss == 0)
+                people_masks = masks[people_indices]
+                people_mask = torch.any(people_masks, dim=0).int() * 255
+                processed_image_path = str(model.predictor.save_dir / f'binarize{i}.jpg')
+                cv2.imwrite(processed_image_path, people_mask.cpu().numpy())
+                processed_image_paths.append(processed_image_path)
+                
+                crack_image_path = processed_image_path
+                principal_orientation, orientation_category = detect_pattern(crack_image_path)
+                
+                # Print the results if needed
+                print(f"Crack Detection Results for {crack_image_path}:")
+                print("Principal Component Analysis Orientation:", principal_orientation)
+                print("Orientation Category:", orientation_category)
+        # csv = gr.File(value=csv, visible=True)
+        # df = gr.DataFrame(value=df, visible=True)
+        # md = gr.Markdown(visible=True)
+        
+        # # Delete binarized images after processing
+        # for path in processed_image_paths:
+        #     if os.path.exists(path):
+        #         os.remove(path)
+        
+        res = f"Pattern: {orientation_category}\nWidth:\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
+        # results = gr.Textbox(res, visible=True)
+        return (f'output/{uuid}/IMG_3636.mp4'), res
+
+
+    # Connect the buttons to the prediction function and clear function
+    video_button.click(
+        predict_segmentation_vid,
+        inputs=[video_input, conf],
+        outputs=[video_output, video_results]
+    )
+    # video_button.click(
+    #     sample,
+    #     inputs=[video_input],
+    #     outputs=[video_output]
+    # )
+    video_clear.click(
+        lambda: [
+            None,
+            None,
+            gr.Slider(value=20),
+            None
+        ],
+        outputs=[video_input, video_output, conf, video_results]
+    )
 
     # Connect the buttons to the prediction function and clear function
     image_button.click(
@@ -199,9 +281,10 @@ with gr.Blocks(theme=theme, css=css) as demo:
         lambda: [
             None,
             None,
-            gr.Slider(value=20)
+            gr.Slider(value=20),
+            None
         ],
-        outputs=[image_input, image_output, conf]
+        outputs=[image_input, image_output, conf, image_results]
     )
 
 # Launch the Gradio app
