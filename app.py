@@ -3,7 +3,6 @@ import gradio as gr
 import shortuuid
 from ultralytics import YOLO
 from utils.data_utils import clear_all
-from utils.model_utils import predict_segmentation
 import torch
 import numpy as np
 import os
@@ -138,7 +137,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
             if file.lower().endswith(allowed_extensions)
         ]
 
-    def predict_segmentation(image, conf):
+    def predict_segmentation_im(image, conf):
         """
         Perform segmentation prediction on a list of images.
         
@@ -191,7 +190,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
     # Connect the buttons to the prediction function and clear function
     image_button.click(
-        predict_segmentation,
+        predict_segmentation_im,
         inputs=[image_input, conf],
         outputs=[image_output,image_results]
     )
