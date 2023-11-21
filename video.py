@@ -6,7 +6,7 @@ from utils.data_utils import clear_all
 import torch
 import numpy as np
 import os
-# Clear any previous data and configurations
+
 clear_all()
 model = YOLO('./weights/best.pt')
 # Define the color scheme/theme for the website
@@ -29,45 +29,12 @@ with gr.Blocks(theme=theme, css=css) as demo:
     gr.Markdown("# Concrete Crack Detection and Segmentation")
     gr.Markdown("Upload concrete crack images and get segmented results.")
 
-    # Image tab
-    with gr.Tab("Image"):
-        with gr.Row():
-            with gr.Column():
-                # Input section for uploading images
-                image_input = gr.Image(
-                    type="numpy",
-                    label="Image Input",
-                    elem_classes="size",
-                )
-
-                #Confidence Score for prediction
-                conf = gr.Slider(value=20,step=5, label="Confidence", 
-                                   interactive=True)
-                distance = gr.Slider(value=5,step=5, label="Distance (m)", 
-                                   interactive=True)
-                # Buttons for segmentation and clearing
-                with gr.Row():
-                    image_button = gr.Button("Segment", variant='primary')
-                    image_clear = gr.ClearButton()
-
-            with gr.Column():
-                # Display section for segmented images
-                image_output = gr.Image(
-                    label="Image Output",
-                    height=500
-                )
-                image_results = gr.Textbox(label="Result")
-                
-                # Display section for results
-                # md_result = gr.Markdown("**Results**", visible=False)
-                # csv_image = gr.File(label='CSV File', interactive=False, visible=False)
-                # df_image = gr.DataFrame(visible=False)
     # Video tab
     with gr.Tab("Video"):
         with gr.Row():
             with gr.Column():
                 # Input section for uploading images
-                video_input = gr.Video(value='IMG_3636.mp4',
+                video_input = gr.Video(
                     label="Video Input",
                     format='mp4'
                 )
@@ -85,13 +52,11 @@ with gr.Blocks(theme=theme, css=css) as demo:
             with gr.Column():
                 # Display section for segmented videos
                 video_output = gr.Video(label="Video Output")
-                video_results = gr.Textbox(label="Result")
+                # video_results = gr.Textbox(label="Result")
                 # Display section for results
                 # md_result = gr.Markdown("**Results**", visible=False)
                 # csv_video = gr.File(label='CSV File', interactive=False, visible=False)
                 # df_video = gr.DataFrame(visible=False)
-
-
     def detect_pattern(image_path):
         """
         Detect concrete cracks in the binary image.
@@ -120,58 +85,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
         return principal_orientation, orientation_category
 
-
-    def predict_segmentation_im(image, conf):
-        """
-        Perform segmentation prediction on a list of images.
-        
-        Parameters:
-            image (list): List of images for segmentation.
-            conf (float): Confidence score for prediction.
-
-        Returns:
-            tuple: Paths of the processed images, CSV file, DataFrame, and Markdown.
-        """
-        uuid = str(shortuuid.uuid())
-        conf= conf * 0.01
-        # filename = image.name
-        results = model.predict(image, conf=conf, save=True, project='output', name=uuid, stream=True)
-        processed_image_paths = []
-        annotated_image_paths = []
-        # Populate the dataframe with counts
-        for i, r in enumerate(results):
-            instance_count = len(r)
-            for m in r:
-                masks = r.masks.data
-                boxes = r.boxes.data
-                clss = boxes[:, 5]
-                people_indices = torch.where(clss == 0)
-                people_masks = masks[people_indices]
-                people_mask = torch.any(people_masks, dim=0).int() * 255
-                processed_image_path = str(model.predictor.save_dir / f'binarize{i}.jpg')
-                cv2.imwrite(processed_image_path, people_mask.cpu().numpy())
-                processed_image_paths.append(processed_image_path)
-                
-                crack_image_path = processed_image_path
-                principal_orientation, orientation_category = detect_pattern(crack_image_path)
-                
-                # Print the results if needed
-                print(f"Crack Detection Results for {crack_image_path}:")
-                print("Principal Component Analysis Orientation:", principal_orientation)
-                print("Orientation Category:", orientation_category)
-        # csv = gr.File(value=csv, visible=True)
-        # df = gr.DataFrame(value=df, visible=True)
-        # md = gr.Markdown(visible=True)
-        
-        # # Delete binarized images after processing
-        # for path in processed_image_paths:
-        #     if os.path.exists(path):
-        #         os.remove(path)
-        
-        res = f"Pattern: {orientation_category}\nWidth:\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
-        # results = gr.Textbox(res, visible=True)
-        return (f'output/{uuid}/image0.jpg'), res
-    
 
     def get_all_file_paths(directory):
         """
@@ -217,7 +130,37 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 boxes = result.boxes  # Boxes object for bbox outputs
                 masks = result.masks  # Masks object for segmentation masks outputs
                 probs = result.probs  # Probs object for classification outputs
-
+            # for i, r in enumerate(results):
+            #     instance_count = len(r)
+            #     for m in r:
+            #         masks = r.masks.data
+            #         boxes = r.boxes.data
+            #         clss = boxes[:, 5]
+            #         people_indices = torch.where(clss == 0)
+            #         people_masks = masks[people_indices]
+            #         people_mask = torch.any(people_masks, dim=0).int() * 255
+            #         processed_image_path = str(model.predictor.save_dir / f'binarize{i}.jpg')
+            #         cv2.imwrite(processed_image_path, people_mask.cpu().numpy())
+            #         processed_image_paths.append(processed_image_path)
+                    
+            #         crack_image_path = processed_image_path
+            #         principal_orientation, orientation_category = detect_pattern(crack_image_path)
+                    
+            #         # Print the results if needed
+            #         print(f"Crack Detection Results for {crack_image_path}:")
+            #         print("Principal Component Analysis Orientation:", principal_orientation)
+            #         print("Orientation Category:", orientation_category)
+            # csv = gr.File(value=csv, visible=True)
+            # df = gr.DataFrame(value=df, visible=True)
+            # md = gr.Markdown(visible=True)
+            
+            # # Delete binarized images after processing
+            # for path in processed_image_paths:
+            #     if os.path.exists(path):
+            #         os.remove(path)
+            
+            # res = f"Pattern: {orientation_category}\nWidth:\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
+            # results = gr.Textbox(res, visible=True)
             return get_all_file_paths(f'output/{uuid}')
 
 
@@ -241,22 +184,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
         ],
         outputs=[video_input, video_output, conf]
     )
-    # Connect the buttons to the prediction function and clear function
-    image_button.click(
-        predict_segmentation_im,
-        inputs=[image_input, conf],
-        outputs=[image_output,image_results]
-    )
-    
-    image_clear.click(
-        lambda: [
-            None,
-            None,
-            gr.Slider(value=20),
-            None
-        ],
-        outputs=[image_input, image_output, conf, image_results]
-    )
 
-# Launch the Gradio app
-demo.launch()
+    # Launch the Gradio app
+    demo.launch()
