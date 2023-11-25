@@ -6,6 +6,8 @@ from utils.data_utils import clear_all
 import torch
 import numpy as np
 import os
+from utils.measure_utils import ContourAnalyzer
+
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')
@@ -163,18 +165,36 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 print(f"Crack Detection Results for {crack_image_path}:")
                 print("Principal Component Analysis Orientation:", principal_orientation)
                 print("Orientation Category:", orientation_category)
-        # csv = gr.File(value=csv, visible=True)
-        # df = gr.DataFrame(value=df, visible=True)
-        # md = gr.Markdown(visible=True)
-        
+
+        # Load the original image in color
+        original_img = cv2.imread(f'output/{uuid}/image0.jpg')
+
+        # Load and resize the binary image to match the dimensions of the original image
+        binary_image = cv2.imread(f'output/{uuid}/binarize0.jpg', cv2.IMREAD_GRAYSCALE)
+        binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
+
+        contour_analyzer = ContourAnalyzer()
+        max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
+
+        visualized_image = original_img.copy()
+        cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
+
+        contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (0, 0, 255), -1)
+        print("Max Width in pixels: ", max_width)
+
+        width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
+        print("Max Width, converted: ", width)
+
+        cv2.imwrite(f'output/{uuid}/visualized_image.jpg', visualized_image)
+    
         # # Delete binarized images after processing
         # for path in processed_image_paths:
         #     if os.path.exists(path):
         #         os.remove(path)
         
-        res = f"Pattern: {orientation_category}\nWidth:\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
+        res = f"Pattern: {orientation_category}\nWidth: {width}\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
         # results = gr.Textbox(res, visible=True)
-        return (f'output/{uuid}/image0.jpg'), res
+        return (f'output/{uuid}/visualized_image.jpg'), res
     
 
     def get_all_file_paths(directory):
