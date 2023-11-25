@@ -47,6 +47,6 @@ class ContourAnalyzer:
         width = angle * pixel_width * distance * calibration_factor
         return width
     
-    def draw_circle_on_image(self, image, center, radius, color=(0, 0, 255), thickness=-1):
+    def draw_circle_on_image(self, image, center, radius, color=(57, 255, 20), thickness=-1):
         cv2.circle(image, center, radius, color, thickness)
 
