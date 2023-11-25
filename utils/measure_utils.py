@@ -50,26 +50,3 @@ class ContourAnalyzer:
     def draw_circle_on_image(self, image, center, radius, color=(0, 0, 255), thickness=-1):
         cv2.circle(image, center, radius, color, thickness)
 
-
-# Load the original image in color
-original_img = cv2.imread('D:/Downloads/image0.jpg')
-
-# Load and resize the binary image to match the dimensions of the original image
-binary_image = cv2.imread('D:/Downloads/binarize0.jpg', cv2.IMREAD_GRAYSCALE)
-binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
-
-contour_analyzer = ContourAnalyzer()
-max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
-
-visualized_image = original_img.copy()
-cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
-
-contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (0, 0, 255), -1)
-print("Max Width in pixels: ", max_width)
-
-width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
-print("Max Width, converted: ", width)
-
-cv2.imshow("Original Binary Image with Thickest Section", visualized_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
