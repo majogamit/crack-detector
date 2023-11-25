@@ -40,6 +40,9 @@ with gr.Blocks(theme=theme, css=css) as demo:
                     elem_classes="size",
                 )
 
+                gr.Examples(["examples/diagonal2.png", "examples/horizontal.jpg", "examples/lertical1.jpg"],
+                            inputs=image_input)
+
                 #Confidence Score for prediction
                 conf = gr.Slider(value=20,step=5, label="Confidence", 
                                    interactive=True)
@@ -67,11 +70,12 @@ with gr.Blocks(theme=theme, css=css) as demo:
         with gr.Row():
             with gr.Column():
                 # Input section for uploading images
-                video_input = gr.Video(value='IMG_3636.mp4',
+                video_input = gr.Video(
                     label="Video Input",
                     format='mp4'
                 )
-
+                gr.Examples(["examples/IMG_3636.mp4"],
+                            inputs=video_input)
                 #Confidence Score for prediction
                 conf = gr.Slider(value=20,step=5, label="Confidence",
                                    interactive=True)
