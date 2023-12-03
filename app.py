@@ -9,8 +9,8 @@ import numpy as np
 import os
 from utils.measure_utils import ContourAnalyzer
 from PIL import Image
-from IPython.core.display import display,HTML
-
+from IPython.display import display,HTML
+import plot as pt
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')
@@ -181,55 +181,55 @@ with gr.Blocks(theme=theme, css=css) as demo:
     
     
     
-    def count_instance(result, filenames, uuid, width_list, orientation_list, image_path):
-        """
-        Counts the instances in the result and generates a CSV with the counts.
+    # def count_instance(result, filenames, uuid, width_list, orientation_list, image_path):
+    #     """
+    #     Counts the instances in the result and generates a CSV with the counts.
 
-        Parameters:
-            result (list): List containing results for each instance.
-            filenames (list): Corresponding filenames for each result.
-            uuid (str): Unique ID for the output folder name.
-            width_list (list): List containing width values for each instance.
-            orientation_list (list): List containing orientation values for each instance.
+    #     Parameters:
+    #         result (list): List containing results for each instance.
+    #         filenames (list): Corresponding filenames for each result.
+    #         uuid (str): Unique ID for the output folder name.
+    #         width_list (list): List containing width values for each instance.
+    #         orientation_list (list): List containing orientation values for each instance.
 
-        Returns:
-            tuple: Path to the generated CSV and dataframe with counts.
-        """
-        # Initializing the dataframe
-        data = {
-            'Index': [],
-            'FileName': [],
-            'Orientation': [],
-            'Width': [],
-            'Instance': []
-        }
-        df = pd.DataFrame(data)
+    #     Returns:
+    #         tuple: Path to the generated CSV and dataframe with counts.
+    #     """
+    #     # Initializing the dataframe
+    #     data = {
+    #         'Index': [],
+    #         'FileName': [],
+    #         'Orientation': [],
+    #         'Width': [],
+    #         'Instance': []
+    #     }
+    #     df = pd.DataFrame(data)
 
-        # Populate the dataframe with counts, width, and orientation
-        for i, res in enumerate(result):
-            instance_count = len(res)
-            df.loc[i] = [i, os.path.basename(filenames[i]), orientation_list[i], width_list[i], instance_count]
+    #     # Populate the dataframe with counts, width, and orientation
+    #     for i, res in enumerate(result):
+    #         instance_count = len(res)
+    #         df.loc[i] = [i, os.path.basename(filenames[i]), orientation_list[i], width_list[i], instance_count]
 
-        # Save dataframe to a CSV file
-        path = os.path.join('output', uuid)
-        os.makedirs(path, exist_ok=True)
-        csv_filename = os.path.join(path, '_results.csv')
+    #     # Save dataframe to a CSV file
+    #     path = os.path.join('output', uuid)
+    #     os.makedirs(path, exist_ok=True)
+    #     csv_filename = os.path.join(path, '_results.csv')
 
-        # Reorder columns
-        df = df[['Index', 'FileName', 'Orientation', 'Width', 'Instance']]
+    #     # Reorder columns
+    #     df = df[['Index', 'FileName', 'Orientation', 'Width', 'Instance']]
 
-        # Create a new dataframe (df2) with all columns from df
-        df2 = df.copy()
+    #     # Create a new dataframe (df2) with all columns from df
+    #     df2 = df.copy()
 
-        # Add another column for the image (modify as per your requirement)
-        image_column = [image_path[i].format(i) for i in range(len(df))]
-        df2['Image'] = image_column
+    #     # Add another column for the image (modify as per your requirement)
+    #     image_column = [image_path[i].format(i) for i in range(len(df))]
+    #     df2['Image'] = image_column
 
-        # Save the modified dataframe to a CSV file
-        # df2.to_csv(csv_filename, index=False)
-        html_table = HTML(df.to_html(escape=False))
-        display(html_table)
-        return csv_filename, df2
+    #     # Save the modified dataframe to a CSV file
+    #     # df2.to_csv(csv_filename, index=False)
+    #     html_table = HTML(df.to_html(escape=False))
+    #     display(html_table)
+    #     return csv_filename, df2
 
 # Example usage:
 # count_instance(result, filenames, uuid, width_list, orientation_list)
@@ -315,7 +315,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
             
             res = f"Pattern: {orientation_category}\nWidth: {width}\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
         # results = gr.Textbox(res, visible=True)
-        csv, df = count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths)
+        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths)
+        print(output_image_paths)
         print(len(result_list))
         print(filenames)
         print("DF")
