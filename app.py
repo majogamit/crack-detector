@@ -94,7 +94,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                     height=400,
                 )
                 md_result = gr.Markdown("**Results**", visible=False)
-                csv_image = gr.File(label='CSV File', interactive=False, visible=False)
+                csv_image = gr.File(label='PDF Report', interactive=False, visible=False)
                 df_image = gr.DataFrame(visible=False)
 
                 
@@ -184,6 +184,12 @@ with gr.Blocks(theme=theme, css=css) as demo:
         Returns:
             tuple: Paths of the processed images, CSV file, DataFrame, and Markdown.
         """
+        # Check if reference or remark is empty
+        if not reference:
+            raise gr.Error("Reference Image cannot be empty.")
+        if not remark:
+            raise gr.Error("Batch Remark cannot be empty.")
+        
         print("THE REFERENCE IN APPPY", reference)
         uuid = generate_uuid()
         image_list = [preprocess_image(Image.open(file.name)) for file in image]
