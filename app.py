@@ -33,7 +33,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Title and description for the app
     gr.Markdown("# Concrete Crack Detection and Segmentation")
     gr.Markdown("Upload concrete crack images and get segmented results.")
-    gr.Markdown(
+    with gr.Tab('Instructions'):
+        gr.Markdown(
     """**Instructions for Concrete Crack Detection and Segmentation App:**
 
     **Input:**
@@ -53,6 +54,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
     **Notes:**
     - Ensure uploaded images are in the supported formats: PNG, JPG, JPEG, WEBP.
+    - Remarks and Reference Image must have data.
 
     **Enjoy detecting and segmenting concrete cracks with the app!**
     """)
