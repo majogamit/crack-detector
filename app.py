@@ -78,35 +78,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
                     file_count="multiple",
                     file_types=["image"],
                     label="Reference Image",)
-    # Video tab
-    with gr.Tab("Video"):
-        with gr.Row():
-            with gr.Column():
-                # Input section for uploading images
-                video_input = gr.Video(
-                    label="Video Input",
-                    format='mp4'
-                )
-                gr.Examples(["examples/IMG_3636.mp4"],
-                            inputs=video_input)
-                #Confidence Score for prediction
-                conf = gr.Slider(value=20,step=5, label="Confidence",
-                                   interactive=True)
-                # distance = gr.Slider(value=5,step=5, label="Distance (m)",
-                #                    interactive=True)
-                # Buttons for segmentation and clearing
-                with gr.Row():
-                    video_button = gr.Button("Segment", variant='primary')
-                    video_clear = gr.ClearButton()
-
-            with gr.Column():
-                # Display section for segmented videos
-                video_output = gr.Video(label="Video Output")
-                video_results = gr.Textbox(label="Result")
-                # Display section for results
-                # md_result = gr.Markdown("**Results**", visible=False)
-                # csv_video = gr.File(label='CSV File', interactive=False, visible=False)
-                # df_video = gr.DataFrame(visible=False)
 
 
     def detect_pattern(image_path):
@@ -294,53 +265,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
         
         return '\n'.join(file_paths)
 
-
-    def predict_segmentation_vid(video, conf):
-            """
-            Perform segmentation prediction on a list of images.
-            
-            Parameters:
-                image (list): List of images for segmentation.
-                conf (float): Confidence score for prediction.
-
-            Returns:
-                tuple: Paths of the processed images, CSV file, DataFrame, and Markdown.
-            """
-            uuid = str(shortuuid.uuid())
-            conf= conf * 0.01
-            # filename = image.name
-            results = model.predict(video, conf=conf, save=True, project='output', name=uuid, stream=True)
-            processed_image_paths = []
-            annotated_image_paths = []
-            # Populate the dataframe with 
-            for result in results:
-                boxes = result.boxes  # Boxes object for bbox outputs
-                masks = result.masks  # Masks object for segmentation masks outputs
-                probs = result.probs  # Probs object for classification outputs
-
-            return get_all_file_paths(f'output/{uuid}')
-
-
-        # Connect the buttons to the prediction function and clear function
-    video_button.click(
-        predict_segmentation_vid,
-        inputs=[video_input, conf],
-        outputs=[video_output],
-    )
-    # video_button.click(
-    #     sample,
-    #     inputs=[video_input],
-    #     outputs=[video_output]
-    # )
-    video_clear.click(
-        lambda: [
-            None,
-            None,
-            gr.Slider(value=20),
-            None
-        ],
-        outputs=[video_input, video_output, conf]
-    )
     # Connect the buttons to the prediction function and clear function
     image_button.click(
         predict_segmentation_im,
@@ -355,9 +279,10 @@ with gr.Blocks(theme=theme, css=css) as demo:
             gr.Markdown(visible=False),
             gr.File(visible=False),
             gr.DataFrame(visible=False),
-            gr.Slider(value=20)
+            gr.Slider(value=20),
+            None
         ],
-        outputs=[image_input, image_output, md_result, csv_image, df_image, conf]
+        outputs=[image_input, image_output, md_result, csv_image, df_image, conf, image_reference]
     )
 
 # Launch the Gradio app
