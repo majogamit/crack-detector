@@ -189,6 +189,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
             raise gr.Error("Reference Image cannot be empty.")
         if not remark:
             raise gr.Error("Batch Remark cannot be empty.")
+        if not image:
+            raise gr.Error("Image input cannot be empty.")
         
         print("THE REFERENCE IN APPPY", reference)
         uuid = generate_uuid()
