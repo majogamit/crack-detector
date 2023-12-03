@@ -25,7 +25,10 @@ def preprocess_image(image):
     return np.array(input_image)
 
 
-def count_instance(result, filenames, uuid):
+import pandas as pd
+import os
+
+def count_instance(result, filenames, uuid, width_list, orientation_list):
     """
     Counts the instances in the result and generates a CSV with the counts.
     
@@ -33,6 +36,8 @@ def count_instance(result, filenames, uuid):
         result (list): List containing results for each instance.
         filenames (list): Corresponding filenames for each result.
         uuid (str): Unique ID for the output folder name.
+        width_list (list): List containing width values for each instance.
+        orientation_list (list): List containing orientation values for each instance.
     
     Returns:
         tuple: Path to the generated CSV and dataframe with counts.
@@ -41,19 +46,25 @@ def count_instance(result, filenames, uuid):
     data = {
         'Index': [],
         'FileName': [],
+        'Orientation': [],
+        'Width': [],
         'Instance': []
     }
     df = pd.DataFrame(data)
 
-    # Populate the dataframe with counts
+    # Populate the dataframe with counts, width, and orientation
     for i, res in enumerate(result):
         instance_count = len(res)
-        df.loc[i] = [i, os.path.basename(filenames[i]), instance_count]
+        df.loc[i] = [i, os.path.basename(filenames[i]), orientation_list[i], width_list[i], instance_count]
 
     # Save dataframe to a CSV file
     path = os.path.join('output', uuid)
     os.makedirs(path, exist_ok=True)
     csv_filename = os.path.join(path, '_results.csv')
+    
+    # Reorder columns
+    df = df[['Index', 'FileName', 'Orientation', 'Width', 'Instance']]
+    
     df.to_csv(csv_filename, index=False)
 
     return csv_filename, df

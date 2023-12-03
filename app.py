@@ -1,5 +1,6 @@
 import cv2
 import gradio as gr
+import pandas as pd
 import shortuuid
 from ultralytics import YOLO
 from utils.data_utils import clear_all
@@ -7,7 +8,9 @@ import torch
 import numpy as np
 import os
 from utils.measure_utils import ContourAnalyzer
-
+from PIL import Image
+from IPython.display import display,HTML
+import plot as pt
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')
@@ -33,17 +36,17 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
     # Image tab
     with gr.Tab("Image"):
-        with gr.Row():
+        
+        with gr.Row():           
             with gr.Column():
                 # Input section for uploading images
-                image_input = gr.Image(
-                    type="numpy",
+                image_input = gr.File(
+                    file_count="multiple",
+                    file_types=["image"],
                     label="Image Input",
                     elem_classes="size",
                 )
 
-                gr.Examples(["examples/diagonal2.png", "examples/horizontal.jpg", "examples/lertical1.jpg"],
-                            inputs=image_input)
 
                 #Confidence Score for prediction
                 conf = gr.Slider(value=20,step=5, label="Confidence", 
@@ -57,16 +60,24 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
             with gr.Column():
                 # Display section for segmented images
-                image_output = gr.Image(
+                image_output = gr.Gallery(
                     label="Image Output",
-                    height=500
+                    show_label=True,
+                    elem_id="gallery",
+                    columns=2,
+                    object_fit="contain",
+                    height=400,
                 )
+                md_result = gr.Markdown("**Results**", visible=False)
+                csv_image = gr.File(label='CSV File', interactive=False, visible=False)
+                df_image = gr.DataFrame(visible=False)
+
                 image_results = gr.Textbox(label="Result")
                 
-                # Display section for results
-                # md_result = gr.Markdown("**Results**", visible=False)
-                # csv_image = gr.File(label='CSV File', interactive=False, visible=False)
-                # df_image = gr.DataFrame(visible=False)
+        image_reference = gr.File(
+                    file_count="multiple",
+                    file_types=["image"],
+                    label="Reference Image",)
     # Video tab
     with gr.Tab("Video"):
         with gr.Row():
@@ -126,8 +137,48 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
         return principal_orientation, orientation_category
 
+    def load_model():
+        """
+        Load the YOLO model with pre-trained weights.
+        
+        Returns:
+            model: Loaded YOLO model.
+        """
+        return YOLO('./weights/best.pt')
+    
+    def generate_uuid():
+        """
+        Generates a short unique identifier.
+        
+        Returns:
+            str: Unique identifier string.
+        """
+        return str(shortuuid.uuid())
 
-    def predict_segmentation_im(image, conf):
+
+    def preprocess_image(image):
+        """ 
+        Preprocesses the input image.
+        
+        Parameters:
+            image (numpy.array or PIL.Image): Image to preprocess.
+        
+        Returns:
+            numpy.array: Resized and converted RGB version of the input image.
+        """
+        # Convert PIL image to numpy array if required
+        if isinstance(image, Image.Image):
+            image = np.array(image)
+
+        # Resize and convert the image to RGB
+        input_image = Image.fromarray(image)
+        input_image = input_image.resize((640, 640))
+        input_image = input_image.convert("RGB")
+
+        return np.array(input_image)
+    
+    
+    def predict_segmentation_im(image, conf, reference):
         """
         Perform segmentation prediction on a list of images.
         
@@ -138,16 +189,23 @@ with gr.Blocks(theme=theme, css=css) as demo:
         Returns:
             tuple: Paths of the processed images, CSV file, DataFrame, and Markdown.
         """
-        uuid = str(shortuuid.uuid())
+        print("THE REFERENCE IN APPPY", reference)
+        uuid = generate_uuid()
+        image_list = [preprocess_image(Image.open(file.name)) for file in image]
+        filenames = [file.name for file in image]
         conf= conf * 0.01
-        # filename = image.name
-        results = model.predict(image, conf=conf, save=True, project='output', name=uuid, stream=True)
+        model = load_model()
+        results = model.predict(image_list, conf=conf, save=True, project='output', name=uuid, stream=True)
         processed_image_paths = []
-        annotated_image_paths = []
+        output_image_paths = []
+        result_list = []
+        width_list = []
+        orientation_list = []
         # Populate the dataframe with counts
         for i, r in enumerate(results):
+            result_list.append(r)
             instance_count = len(r)
-            for m in r:
+            if r.masks is not None and r.masks.data.numel() > 0:
                 masks = r.masks.data
                 boxes = r.boxes.data
                 clss = boxes[:, 5]
@@ -166,36 +224,54 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 print("Principal Component Analysis Orientation:", principal_orientation)
                 print("Orientation Category:", orientation_category)
 
-        # Load the original image in color
-        original_img = cv2.imread(f'output/{uuid}/image0.jpg')
+                # Load the original image in color
+                original_img = cv2.imread(f'output/{uuid}/image{i}.jpg')
+                orig_image_path = str(model.predictor.save_dir / f'image{i}.jpg')
+                processed_image_paths.append(orig_image_path)
+                # Load and resize the binary image to match the dimensions of the original image
+                binary_image = cv2.imread(f'output/{uuid}/binarize{i}.jpg', cv2.IMREAD_GRAYSCALE)
+                binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
 
-        # Load and resize the binary image to match the dimensions of the original image
-        binary_image = cv2.imread(f'output/{uuid}/binarize0.jpg', cv2.IMREAD_GRAYSCALE)
-        binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
+                contour_analyzer = ContourAnalyzer()
+                max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
 
-        contour_analyzer = ContourAnalyzer()
-        max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
+                visualized_image = original_img.copy()
+                cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
 
-        visualized_image = original_img.copy()
-        cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
+                contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
+                print("Max Width in pixels: ", max_width)
 
-        contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
-        print("Max Width in pixels: ", max_width)
+                width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
+                print("Max Width, converted: ", width)
+                
+                visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
+                output_image_paths.append(visualized_image_path)
+                cv2.imwrite(visualized_image_path, visualized_image)
 
-        width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
-        print("Max Width, converted: ", width)
+                width_list.append(round(width, 2))
+                orientation_list.append(orientation_category)
+            else:
+                original_img = cv2.imread(f'output/{uuid}/image{i}.jpg')
+                visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
+                output_image_paths.append(visualized_image_path)
+                cv2.imwrite(visualized_image_path, original_img)
+                width_list.append('None')
+                orientation_list.append('None')
 
-        cv2.imwrite(f'output/{uuid}/visualized_image.jpg', visualized_image)
-    
-        # # Delete binarized images after processing
-        # for path in processed_image_paths:
-        #     if os.path.exists(path):
-        #         os.remove(path)
-        
-        res = f"Pattern: {orientation_category}\nWidth: {width}\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
+        # Delete binarized and initial segmented images after processing
+        for path in processed_image_paths:
+            if os.path.exists(path):
+                os.remove(path)
+                
         # results = gr.Textbox(res, visible=True)
-        return (f'output/{uuid}/visualized_image.jpg'), res
-    
+        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference)
+
+        csv = gr.File(value=csv, visible=True)
+        df = gr.DataFrame(value=df, visible=True)
+        md = gr.Markdown(visible=True)
+
+        # return get_all_file_paths(f"output/{uuid}/"), csv, df, md
+        return output_image_paths, csv, df, md
 
     def get_all_file_paths(directory):
         """
@@ -268,18 +344,20 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Connect the buttons to the prediction function and clear function
     image_button.click(
         predict_segmentation_im,
-        inputs=[image_input, conf],
-        outputs=[image_output,image_results]
+        inputs=[image_input, conf, image_reference],
+        outputs=[image_output, csv_image, df_image, md_result]
     )
     
     image_clear.click(
         lambda: [
             None,
             None,
-            gr.Slider(value=20),
-            None
+            gr.Markdown(visible=False),
+            gr.File(visible=False),
+            gr.DataFrame(visible=False),
+            gr.Slider(value=20)
         ],
-        outputs=[image_input, image_output, conf, image_results]
+        outputs=[image_input, image_output, md_result, csv_image, df_image, conf]
     )
 
 # Launch the Gradio app
