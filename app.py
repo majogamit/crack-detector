@@ -50,10 +50,11 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 #Confidence Score for prediction
                 conf = gr.Slider(value=20,step=5, label="Confidence", 
                                    interactive=True)
-                distance = gr.Slider(value=5,step=5, label="Distance (m)", 
+                distance = gr.Slider(value=10,step=1, label="Distance (cm)", 
                                    interactive=True)
                 # Buttons for segmentation and clearing
-                image_remark = gr.Textbox(label="Remark for the Batch")
+                image_remark = gr.Textbox(label="Remark for the Batch",
+                                          placeholder='Fifth floor: Wall facing the door')
                 with gr.Row():
                     image_button = gr.Button("Segment", variant='primary')
                     image_clear = gr.ClearButton()
@@ -171,6 +172,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
         result_list = []
         width_list = []
         orientation_list = []
+        width_interpretations = []
         # Populate the dataframe with counts
         for i, r in enumerate(results):
             result_list.append(r)
@@ -214,6 +216,9 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
                 print("Max Width, converted: ", width)
                 
+                prets = pt.classify_wall_damage(width)
+                width_interpretations.append(prets)
+                
                 visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
                 output_image_paths.append(visualized_image_path)
                 cv2.imwrite(visualized_image_path, visualized_image)
@@ -227,6 +232,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 cv2.imwrite(visualized_image_path, original_img)
                 width_list.append('None')
                 orientation_list.append('None')
+                width_interpretations.append('None')
 
         # Delete binarized and initial segmented images after processing
         for path in processed_image_paths:
@@ -234,7 +240,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 os.remove(path)
                 
         # results = gr.Textbox(res, visible=True)
-        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference, remark)
+        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference, remark, width_interpretations)
 
         csv = gr.File(value=csv, visible=True)
         df = gr.DataFrame(value=df, visible=True)
@@ -243,26 +249,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
         # return get_all_file_paths(f"output/{uuid}/"), csv, df, md
         return output_image_paths, csv, df, md
 
-    def get_all_file_paths(directory):
-        """
-        Collects all image file paths under a given directory.
-        
-        Parameters:
-            directory (str): Directory to search for image files.
-        
-        Returns: 
-            str: String of image file paths separated by a newline character.
-        """
-        allowed_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.mp4', '.avi', '.mov')
-        
-        file_paths = [
-            os.path.join(root, file)
-            for root, _, files in os.walk(directory)
-            for file in files
-            if file.lower().endswith(allowed_extensions)
-        ]
-        
-        return '\n'.join(file_paths)
 
     # Connect the buttons to the prediction function and clear function
     image_button.click(
@@ -279,9 +265,10 @@ with gr.Blocks(theme=theme, css=css) as demo:
             gr.File(visible=False),
             gr.DataFrame(visible=False),
             gr.Slider(value=20),
+            None,
             None
         ],
-        outputs=[image_input, image_output, md_result, csv_image, df_image, conf, image_reference]
+        outputs=[image_input, image_output, md_result, csv_image, df_image, conf, image_reference, image_remark]
     )
 
 # Launch the Gradio app
