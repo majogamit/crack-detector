@@ -9,6 +9,7 @@ import numpy as np
 import os
 from utils.measure_utils import ContourAnalyzer
 from PIL import Image
+from IPython.core.display import display,HTML
 
 # Clear any previous data and configurations
 clear_all()
@@ -35,7 +36,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
     # Image tab
     with gr.Tab("Image"):
-        with gr.Row():
+        
+        with gr.Row():           
             with gr.Column():
                 # Input section for uploading images
                 image_input = gr.File(
@@ -76,6 +78,8 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 # md_result = gr.Markdown("**Results**", visible=False)
                 # csv_image = gr.File(label='CSV File', interactive=False, visible=False)
                 # df_image = gr.DataFrame(visible=False)
+        image_reference = gr.Image(sources=['upload', 'webcam'],
+                                       label='Reference Image',)
     # Video tab
     with gr.Tab("Video"):
         with gr.Row():
@@ -175,15 +179,19 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
         return np.array(input_image)
     
-    def count_instance(result, filenames, uuid):
+    
+    
+    def count_instance(result, filenames, uuid, width_list, orientation_list, image_path):
         """
         Counts the instances in the result and generates a CSV with the counts.
-        
+
         Parameters:
             result (list): List containing results for each instance.
             filenames (list): Corresponding filenames for each result.
             uuid (str): Unique ID for the output folder name.
-        
+            width_list (list): List containing width values for each instance.
+            orientation_list (list): List containing orientation values for each instance.
+
         Returns:
             tuple: Path to the generated CSV and dataframe with counts.
         """
@@ -191,24 +199,44 @@ with gr.Blocks(theme=theme, css=css) as demo:
         data = {
             'Index': [],
             'FileName': [],
+            'Orientation': [],
+            'Width': [],
             'Instance': []
         }
         df = pd.DataFrame(data)
 
-        # Populate the dataframe with counts
+        # Populate the dataframe with counts, width, and orientation
         for i, res in enumerate(result):
             instance_count = len(res)
-            df.loc[i] = [i, os.path.basename(filenames[i]), instance_count]
+            df.loc[i] = [i, os.path.basename(filenames[i]), orientation_list[i], width_list[i], instance_count]
 
         # Save dataframe to a CSV file
         path = os.path.join('output', uuid)
         os.makedirs(path, exist_ok=True)
         csv_filename = os.path.join(path, '_results.csv')
-        df.to_csv(csv_filename, index=False)
 
-        return csv_filename, df
+        # Reorder columns
+        df = df[['Index', 'FileName', 'Orientation', 'Width', 'Instance']]
 
-    def predict_segmentation_im(image, conf):
+        # Create a new dataframe (df2) with all columns from df
+        df2 = df.copy()
+
+        # Add another column for the image (modify as per your requirement)
+        image_column = [image_path[i].format(i) for i in range(len(df))]
+        df2['Image'] = image_column
+
+        # Save the modified dataframe to a CSV file
+        # df2.to_csv(csv_filename, index=False)
+        html_table = HTML(df.to_html(escape=False))
+        display(html_table)
+        return csv_filename, df2
+
+# Example usage:
+# count_instance(result, filenames, uuid, width_list, orientation_list)
+
+
+
+    def predict_segmentation_im(image, conf, reference):
         """
         Perform segmentation prediction on a list of images.
         
@@ -227,8 +255,12 @@ with gr.Blocks(theme=theme, css=css) as demo:
         results = model.predict(image_list, conf=conf, save=True, project='output', name=uuid, stream=True)
         processed_image_paths = []
         output_image_paths = []
+        result_list = []
+        width_list = []
+        orientation_list = []
         # Populate the dataframe with counts
         for i, r in enumerate(results):
+            result_list.append(r)
             instance_count = len(r)
             # for m in r:
             masks = r.masks.data
@@ -268,19 +300,26 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
             width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
             print("Max Width, converted: ", width)
+            
             visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
             output_image_paths.append(visualized_image_path)
             cv2.imwrite(visualized_image_path, visualized_image)
-        
-            # Delete binarized images after processing
+
+            width_list.append(round(width, 2))
+            orientation_list.append(orientation_category)
+
+            # Delete binarized and initial segmented images after processing
             for path in processed_image_paths:
                 if os.path.exists(path):
                     os.remove(path)
             
             res = f"Pattern: {orientation_category}\nWidth: {width}\nLength:\nCrack Instance: {instance_count}\nSafety Recommendation:"
         # results = gr.Textbox(res, visible=True)
-        csv, df = count_instance(results, filenames, uuid)
-
+        csv, df = count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths)
+        print(len(result_list))
+        print(filenames)
+        print("DF")
+        print(df)
         csv = gr.File(value=csv, visible=True)
         df = gr.DataFrame(value=df, visible=True)
         md = gr.Markdown(visible=True)
@@ -359,7 +398,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Connect the buttons to the prediction function and clear function
     image_button.click(
         predict_segmentation_im,
-        inputs=[image_input, conf],
+        inputs=[image_input, conf, image_reference],
         outputs=[image_output, csv_image, df_image, md_result]
     )
     
