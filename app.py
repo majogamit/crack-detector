@@ -33,7 +33,29 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Title and description for the app
     gr.Markdown("# Concrete Crack Detection and Segmentation")
     gr.Markdown("Upload concrete crack images and get segmented results.")
+    gr.Markdown(
+    """**Instructions for Concrete Crack Detection and Segmentation App:**
 
+    **Input:**
+    - Upload one or more concrete crack images using the "Image Input" section.
+    - Adjust confidence level and distance sliders if needed.\n
+    **Buttons:**
+    - Click "Segment" to perform crack segmentation.
+    - Click "Clear" to reset inputs and outputs.\n
+    **Output:**
+    - View segmented images in the "Image Output" gallery.
+    - Check crack detection results in the "Results" table.
+    - Download the PDF report file with detailed information..
+
+    **Additional Information:**
+    - The app uses a YOLOv8 trained model for crack detection with 86.8\% accuracy.
+    - Results include orientation category, width of the crack (widest), number of cracks per photo.
+
+    **Notes:**
+    - Ensure uploaded images are in the supported formats: PNG, JPG, JPEG, WEBP.
+
+    **Enjoy detecting and segmenting concrete cracks with the app!**
+    """)
     # Image tab
     with gr.Tab("Image"):
         
