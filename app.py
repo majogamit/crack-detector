@@ -9,8 +9,7 @@ import numpy as np
 import os
 from utils.measure_utils import ContourAnalyzer
 from PIL import Image
-from IPython.display import display,HTML
-import plot as pt
+import utils.plot as pt
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')
