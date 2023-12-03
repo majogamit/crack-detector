@@ -4,7 +4,7 @@ import os
 import pdfkit
 from pypdf import PdfMerger
 
-def count_instance(result, filenames, uuid, width_list, orientation_list, image_path, reference):
+def count_instance(result, filenames, uuid, width_list, orientation_list, image_path, reference, remark):
         """
         Counts the instances in the result and generates a CSV with the counts.
 
@@ -48,6 +48,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         print(image_path)
         base_path = [os.path.basename(path) for path in image_path]
         df2['Image'] = base_path
+        df2['Remarks'] = remark
         # convert your links to html tags 
         def path_to_image_html(path):
             return '<img src="'+ path + '" width="240" >'
@@ -61,7 +62,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
             format_dict[image_col] = path_to_image_html
 
         
-        col_widths = [50, 100, 50, 50, 50, 120] 
+        col_widths = [50, 100, 50, 50, 50, 120, 150] 
         
         # Create the HTML file
         df_html = df2.to_html(f'output/{uuid}/df_batch.html', escape=False, formatters=format_dict, col_space=col_widths)

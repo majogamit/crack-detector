@@ -53,6 +53,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 distance = gr.Slider(value=5,step=5, label="Distance (m)", 
                                    interactive=True)
                 # Buttons for segmentation and clearing
+                image_remark = gr.Textbox(label="Remark for the Batch")
                 with gr.Row():
                     image_button = gr.Button("Segment", variant='primary')
                     image_clear = gr.ClearButton()
@@ -71,7 +72,6 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 csv_image = gr.File(label='CSV File', interactive=False, visible=False)
                 df_image = gr.DataFrame(visible=False)
 
-                image_results = gr.Textbox(label="Result")
                 
         image_reference = gr.File(
                     file_count="multiple",
@@ -148,7 +148,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
         return np.array(input_image)
     
     
-    def predict_segmentation_im(image, conf, reference):
+    def predict_segmentation_im(image, conf, reference, remark):
         """
         Perform segmentation prediction on a list of images.
         
@@ -234,7 +234,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 os.remove(path)
                 
         # results = gr.Textbox(res, visible=True)
-        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference)
+        csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference, remark)
 
         csv = gr.File(value=csv, visible=True)
         df = gr.DataFrame(value=df, visible=True)
@@ -267,7 +267,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Connect the buttons to the prediction function and clear function
     image_button.click(
         predict_segmentation_im,
-        inputs=[image_input, conf, image_reference],
+        inputs=[image_input, conf, image_reference, image_remark],
         outputs=[image_output, csv_image, df_image, md_result]
     )
     
