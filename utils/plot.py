@@ -98,7 +98,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         # convert your links to html tags 
         def path_to_image_html(path):
             return '<img src="'+ path + '" width="240" >'
-        
+        print("This executed 1")
         pd.set_option('display.max_colwidth', None)
 
         image_cols = ['Image']
@@ -107,13 +107,14 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         for image_col in image_cols:
             format_dict[image_col] = path_to_image_html
 
-        
+        print("This executed 2")
         col_widths = [100, 50, 50, 50, 50, 120, 150] 
         df2 = df2.drop(df.columns[0], axis=1)
 
         # Create the HTML file
         df_html = df2.to_html(f'output/{uuid}/df_batch.html', escape=False, formatters=format_dict, col_space=col_widths, justify='left')
         df_refs = df_ref.to_html(f'output/{uuid}/df_ref.html', escape=False, justify='left')
+        print("This executed 3")
         # Save the modified dataframe to a CSV file
         from bs4 import BeautifulSoup
 
@@ -137,7 +138,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         html_table = HTML(df2.to_html(escape=False))
         display(html_table)
               
-        
+        print('This executed 4')
         # new_parser = HtmlToDocx()
         # new_parser.parse_html_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch')
         # new_parser.parse_html_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref')
@@ -146,7 +147,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf')
         pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf')
 
-        
+        print("This executed 5")
 
         pdfs = [f'output/{uuid}/report_ref.pdf', f'output/{uuid}/report_batch.pdf']
 
