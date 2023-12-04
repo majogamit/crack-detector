@@ -247,7 +247,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
                 print("Max Width in pixels: ", max_width)
 
-                width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
+                width = contour_analyzer.calculate_width(y=0, x=0, pixel_width=max_width, calibration_factor=0.001, distance=150)
                 print("Max Width, converted: ", width)
                 
                 prets = pt.classify_wall_damage(width)
