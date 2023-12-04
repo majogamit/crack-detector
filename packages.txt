@@ -1,2 +1,1 @@
 wkhtmltopdf
-libssl1.0-dev

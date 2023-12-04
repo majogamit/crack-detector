@@ -3,7 +3,7 @@ from IPython.display import display, HTML
 import os
 import pdfkit
 from pypdf import PdfMerger
-
+import imgkit
 
 def classify_wall_damage(crack_width):
     if crack_width <= 0.1:
@@ -158,7 +158,9 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
 
         merger.write(f'output/{uuid}/report.pdf')
         merger.close()
-        return f'output/{uuid}/report.pdf', df
+
+        imgkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/out.jpg')
+        return f'output/{uuid}/out.jpg', df
 
 
 
