@@ -10,6 +10,8 @@ import os
 from utils.measure_utils import ContourAnalyzer
 from PIL import Image
 import utils.plot as pt
+
+
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')

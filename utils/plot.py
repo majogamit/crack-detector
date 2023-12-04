@@ -3,6 +3,8 @@ from IPython.display import display, HTML
 import os
 import pdfkit
 from pypdf import PdfMerger
+
+
 def classify_wall_damage(crack_width):
     if crack_width <= 0.1:
         return "Negligible"
@@ -134,7 +136,13 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
 
         html_table = HTML(df2.to_html(escape=False))
         display(html_table)
+              
         
+        # new_parser = HtmlToDocx()
+        # new_parser.parse_html_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch')
+        # new_parser.parse_html_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref')
+
+        # convert(f"output/{uuid}/report_batch.docx", f"output/{uuid}/Mine.pdf")
         pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf')
         pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf')
 
