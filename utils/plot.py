@@ -1,8 +1,6 @@
 import pandas as pd
 from IPython.display import display, HTML
 import os
-import pdfkit
-from pypdf import PdfMerger
 import imgkit
 
 def classify_wall_damage(crack_width):
@@ -46,6 +44,22 @@ def generate_html_summary(crack_list):
     html_summary += "</body>\n</html>"
     print(html_summary)
     return html_summary
+
+def merge_html_files(file1_path, file2_path, output_path):
+    # Read contents of the first HTML file
+    with open(file1_path, 'r', encoding='utf-8') as file1:
+        content1 = file1.read()
+
+    # Read contents of the second HTML file
+    with open(file2_path, 'r', encoding='utf-8') as file2:
+        content2 = file2.read()
+
+    # Concatenate the contents
+    merged_content = content1 + content2
+
+    # Write the merged content to the output file
+    with open(output_path, 'w', encoding='utf-8') as output_file:
+        output_file.write(merged_content)
 
 
 def count_instance(result, filenames, uuid, width_list, orientation_list, image_path, reference, remark, damage):
@@ -139,6 +153,9 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         display(html_table)
               
         print('This executed 4')
+        file1 = f'output\{uuid}\df_ref_summary.html'
+        file2 = f'output\{uuid}\df_batch.html'
+        merge_html_files(file1, file2, f'output/{uuid}/out.html')
         # new_parser = HtmlToDocx()
         # new_parser.parse_html_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch')
         # new_parser.parse_html_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref')
@@ -159,7 +176,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         # merger.write(f'output/{uuid}/report.pdf')
         # merger.close()
         # options = {'width': 1280, 'disable-smart-width': ''}
-        imgkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/out.jpg', )
+        imgkit.from_file(f'output/{uuid}/out.html', f'output/{uuid}/out.jpg', )
         return f'output/{uuid}/out.jpg', df
 
 

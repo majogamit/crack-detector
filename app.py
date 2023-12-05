@@ -96,7 +96,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                     height=400,
                 )
                 md_result = gr.Markdown("**Results**", visible=False)
-                csv_image = gr.File(label='PDF Report', interactive=False, visible=False)
+                csv_image = gr.File(label='Report', interactive=False, visible=False)
                 df_image = gr.DataFrame(visible=False)
 
                 
