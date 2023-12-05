@@ -163,11 +163,9 @@ with gr.Blocks(theme=theme, css=css) as demo:
         Returns:
             numpy.array: Resized and converted RGB version of the input image.
         """
-        # Convert PIL image to numpy array if required
-        if isinstance(image, Image.Image):
-            image = np.array(image)
 
-        # Resize and convert the image to RGB
+        image = np.array(image)
+
         input_image = Image.fromarray(image)
         input_image = input_image.resize((640, 640))
         input_image = input_image.convert("RGB")

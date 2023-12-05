@@ -2,6 +2,8 @@ import pandas as pd
 from IPython.display import display, HTML
 import os
 import imgkit
+import pdfkit
+from pypdf import PdfMerger
 
 def classify_wall_damage(crack_width):
     if crack_width <= 0.1:
@@ -60,7 +62,6 @@ def merge_html_files(file1_path, file2_path, output_path):
     # Write the merged content to the output file
     with open(output_path, 'w', encoding='utf-8') as output_file:
         output_file.write(merged_content)
-
 
 def count_instance(result, filenames, uuid, width_list, orientation_list, image_path, reference, remark, damage):
         """
@@ -153,31 +154,32 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         display(html_table)
               
         print('This executed 4')
-        file1 = f'output\{uuid}\df_ref_summary.html'
-        file2 = f'output\{uuid}\df_batch.html'
+        file1 = f'output/{uuid}/df_ref_summary.html'
+        file2 = f'output/{uuid}/df_batch.html'
         merge_html_files(file1, file2, f'output/{uuid}/out.html')
+        opt = {"enable-local-file-access": ""}
         # new_parser = HtmlToDocx()
         # new_parser.parse_html_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch')
         # new_parser.parse_html_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref')
 
         # convert(f"output/{uuid}/report_batch.docx", f"output/{uuid}/Mine.pdf")
-        # pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf')
-        # pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf')
+        pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf', options=opt)
+        pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf', options=opt)
 
         print("This executed 5")
 
-        # pdfs = [f'output/{uuid}/report_ref.pdf', f'output/{uuid}/report_batch.pdf']
+        pdfs = [f'output/{uuid}/report_ref.pdf', f'output/{uuid}/report_batch.pdf']
 
-        # merger = PdfMerger()
+        merger = PdfMerger()
 
-        # for pdf in pdfs:
-        #     merger.append(pdf)
+        for pdf in pdfs:
+            merger.append(pdf)
 
-        # merger.write(f'output/{uuid}/report.pdf')
-        # merger.close()
+        merger.write(f'output/{uuid}/report.pdf')
+        merger.close()
         # options = {'width': 1280, 'disable-smart-width': ''}
-        imgkit.from_file(f'output/{uuid}/out.html', f'output/{uuid}/out.jpg', )
-        return f'output/{uuid}/out.jpg', df
+        # imgkit.from_file(f'output/{uuid}/out.html', f'output/{uuid}/out.jpg', options=opt)
+        return f'output/{uuid}/report.pdf', df
 
 
 
