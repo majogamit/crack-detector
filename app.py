@@ -33,7 +33,7 @@ css = """
 with gr.Blocks(theme=theme, css=css) as demo:
     # Title and description for the app
     gr.Markdown("# Concrete Crack Segmentation and Documentation")
-    gr.Markdown("Upload concrete crack images and get segmented results with report pdf..")
+    gr.Markdown("Upload concrete crack images and get segmented results with pdf report.")
     with gr.Tab('Instructions'):
         gr.Markdown(
     """**Instructions for Concrete Crack Detection and Segmentation App:**

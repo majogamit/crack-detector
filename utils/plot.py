@@ -177,8 +177,13 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
 
         merger.write(f'output/{uuid}/report.pdf')
         merger.close()
-        # options = {'width': 1280, 'disable-smart-width': ''}
-        # imgkit.from_file(f'output/{uuid}/out.html', f'output/{uuid}/out.jpg', options=opt)
+
+        paths = [f'output/{uuid}/df_batch.html', f'output/{uuid}/df_ref_summary.html',
+                 f'output/{uuid}/df_ref.html', f'output/{uuid}/out.html',
+                 f'output/{uuid}/report_batch.pdf', f'output/{uuid}/report_ref.pdf']
+        for path in paths:
+            if os.path.exists(path):
+                os.remove(path)
         return f'output/{uuid}/report.pdf', df
 
 
