@@ -1,5 +1,6 @@
 beautifulsoup4==4.12.2
 gradio==4.7.1
+imgkit==1.2.3
 ipython==8.18.1
 numpy==1.26.2
 pandas==2.1.3

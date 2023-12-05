@@ -97,7 +97,7 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         df2['Remarks'] = remark
         # convert your links to html tags 
         def path_to_image_html(path):
-            return '<img src="'+ path + '" width="240" >'
+            return '<img src="'+ path + '" width="320" >'
         print("This executed 1")
         pd.set_option('display.max_colwidth', None)
 
@@ -144,22 +144,22 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
         # new_parser.parse_html_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref')
 
         # convert(f"output/{uuid}/report_batch.docx", f"output/{uuid}/Mine.pdf")
-        pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf')
-        pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf')
+        # pdfkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/report_batch.pdf')
+        # pdfkit.from_file(f'output/{uuid}/df_ref_summary.html', f'output/{uuid}/report_ref.pdf')
 
         print("This executed 5")
 
-        pdfs = [f'output/{uuid}/report_ref.pdf', f'output/{uuid}/report_batch.pdf']
+        # pdfs = [f'output/{uuid}/report_ref.pdf', f'output/{uuid}/report_batch.pdf']
 
-        merger = PdfMerger()
+        # merger = PdfMerger()
 
-        for pdf in pdfs:
-            merger.append(pdf)
+        # for pdf in pdfs:
+        #     merger.append(pdf)
 
-        merger.write(f'output/{uuid}/report.pdf')
-        merger.close()
-
-        imgkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/out.jpg')
+        # merger.write(f'output/{uuid}/report.pdf')
+        # merger.close()
+        # options = {'width': 1280, 'disable-smart-width': ''}
+        imgkit.from_file(f'output/{uuid}/df_batch.html', f'output/{uuid}/out.jpg', )
         return f'output/{uuid}/out.jpg', df
 
 
