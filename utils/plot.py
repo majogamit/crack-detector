@@ -78,6 +78,8 @@ def count_instance(result, filenames, uuid, width_list, orientation_list, image_
             tuple: Path to the generated CSV and dataframe with counts.
         """
         # Initializing the dataframe
+        uuid= f'{uuid}0' 
+        print(uuid)
         print(damage)
         data = {
             'Index': [],
