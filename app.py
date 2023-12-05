@@ -1,3 +1,4 @@
+import shutil
 import cv2
 import gradio as gr
 import pandas as pd
@@ -200,79 +201,89 @@ with gr.Blocks(theme=theme, css=css) as demo:
         filenames = [file.name for file in image]
         conf= conf * 0.01
         model = load_model()
-        results = model.predict(image_list, conf=conf, save=True, project='output', name=uuid, stream=True)
+        
         processed_image_paths = []
         output_image_paths = []
         result_list = []
         width_list = []
         orientation_list = []
         width_interpretations = []
+        folder_name = []
         # Populate the dataframe with counts
-        for i, r in enumerate(results):
-            result_list.append(r)
-            instance_count = len(r)
-            if r.masks is not None and r.masks.data.numel() > 0:
-                masks = r.masks.data
-                boxes = r.boxes.data
-                clss = boxes[:, 5]
-                people_indices = torch.where(clss == 0)
-                people_masks = masks[people_indices]
-                people_mask = torch.any(people_masks, dim=0).int() * 255
-                processed_image_path = str(model.predictor.save_dir / f'binarize{i}.jpg')
-                cv2.imwrite(processed_image_path, people_mask.cpu().numpy())
-                processed_image_paths.append(processed_image_path)
-                
-                crack_image_path = processed_image_path
-                principal_orientation, orientation_category = detect_pattern(crack_image_path)
-                
-                # Print the results if needed
-                print(f"Crack Detection Results for {crack_image_path}:")
-                print("Principal Component Analysis Orientation:", principal_orientation)
-                print("Orientation Category:", orientation_category)
+        for i, image_path in enumerate(image):
+            results = model.predict(image_path, conf=conf, save=True, project='output', name=f'{uuid}{i}', stream=True)
+            for r in results:
+                result_list.append(r)
+                instance_count = len(r)
+                if r.masks is not None and r.masks.data.numel() > 0:
+                    masks = r.masks.data
+                    boxes = r.boxes.data
+                    clss = boxes[:, 5]
+                    people_indices = torch.where(clss == 0)
+                    people_masks = masks[people_indices]
+                    people_mask = torch.any(people_masks, dim=0).int() * 255
+                    processed_image_path = str(f'output/{uuid}0/binarize{i}.jpg')
+                    cv2.imwrite(processed_image_path, people_mask.cpu().numpy())
+                    processed_image_paths.append(processed_image_path)
+                    
+                    crack_image_path = processed_image_path
+                    principal_orientation, orientation_category = detect_pattern(crack_image_path)
+                    
+                    # Print the results if needed
+                    print(f"Crack Detection Results for {crack_image_path}:")
+                    print("Principal Component Analysis Orientation:", principal_orientation)
+                    print("Orientation Category:", orientation_category)
+                    if i>0:
+                        processed_image_paths.append(f'output/{uuid}{i}')
+                    #transfer item to current folder
+                    the_paths = f'output/{uuid}{i}/{os.path.basename(image_path)}'
+                    print(the_paths)
+                    shutil.copyfile(the_paths, f'output/{uuid}0/image{i}.jpg')
+                    # Load the original image in color
+                    original_img = cv2.imread(f'output/{uuid}0/image{i}.jpg')
+                    orig_image_path = str(f'output/{uuid}0/image{i}.jpg')
+                    processed_image_paths.append(orig_image_path)
+                    # Load and resize the binary image to match the dimensions of the original image
+                    binary_image = cv2.imread(f'output/{uuid}0/binarize{i}.jpg', cv2.IMREAD_GRAYSCALE)
+                    binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
 
-                # Load the original image in color
-                original_img = cv2.imread(f'output/{uuid}/image{i}.jpg')
-                orig_image_path = str(model.predictor.save_dir / f'image{i}.jpg')
-                processed_image_paths.append(orig_image_path)
-                # Load and resize the binary image to match the dimensions of the original image
-                binary_image = cv2.imread(f'output/{uuid}/binarize{i}.jpg', cv2.IMREAD_GRAYSCALE)
-                binary_image = cv2.resize(binary_image, (original_img.shape[1], original_img.shape[0]))
+                    contour_analyzer = ContourAnalyzer()
+                    max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
 
-                contour_analyzer = ContourAnalyzer()
-                max_width, thickest_section, thickest_points, distance_transforms = contour_analyzer.find_contours(binary_image)
+                    visualized_image = original_img.copy()
+                    cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
 
-                visualized_image = original_img.copy()
-                cv2.drawContours(visualized_image, [thickest_section], 0, (0, 255, 0), 1)
+                    contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
+                    print("Max Width in pixels: ", max_width)
 
-                contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
-                print("Max Width in pixels: ", max_width)
+                    width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
+                    print("Max Width, converted: ", width)
+                    
+                    prets = pt.classify_wall_damage(width)
+                    width_interpretations.append(prets)
+                    
+                    visualized_image_path = f'output/{uuid}0/visualized_image{i}.jpg'
+                    output_image_paths.append(visualized_image_path)
+                    cv2.imwrite(visualized_image_path, visualized_image)
 
-                width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
-                print("Max Width, converted: ", width)
-                
-                prets = pt.classify_wall_damage(width)
-                width_interpretations.append(prets)
-                
-                visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
-                output_image_paths.append(visualized_image_path)
-                cv2.imwrite(visualized_image_path, visualized_image)
-
-                width_list.append(round(width, 2))
-                orientation_list.append(orientation_category)
-            else:
-                original_img = cv2.imread(f'output/{uuid}/image{i}.jpg')
-                visualized_image_path = f'output/{uuid}/visualized_image{i}.jpg'
-                output_image_paths.append(visualized_image_path)
-                cv2.imwrite(visualized_image_path, original_img)
-                width_list.append('None')
-                orientation_list.append('None')
-                width_interpretations.append('None')
+                    width_list.append(round(width, 2))
+                    orientation_list.append(orientation_category)
+                else:
+                    original_img = cv2.imread(f'output/{uuid}0/image{i}.jpg')
+                    visualized_image_path = f'output/{uuid}0/visualized_image{i}.jpg'
+                    output_image_paths.append(visualized_image_path)
+                    cv2.imwrite(visualized_image_path, original_img)
+                    width_list.append('None')
+                    orientation_list.append('None')
+                    width_interpretations.append('None')
 
         # Delete binarized and initial segmented images after processing
         for path in processed_image_paths:
             if os.path.exists(path):
-                os.remove(path)
-                
+                if os.path.isfile(path):
+                    os.remove(path)
+                elif os.path.isdir(path):
+                    shutil.rmtree(path)
         # results = gr.Textbox(res, visible=True)
         csv, df = pt.count_instance(result_list, filenames, uuid, width_list, orientation_list, output_image_paths, reference, remark, width_interpretations)
 
