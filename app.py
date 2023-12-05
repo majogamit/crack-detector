@@ -169,7 +169,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
         # Resize and convert the image to RGB
         input_image = Image.fromarray(image)
-        input_image = input_image.resize((640, 640))
+        #input_image = input_image.resize((640, 640))
         input_image = input_image.convert("RGB")
 
         return np.array(input_image)
@@ -247,7 +247,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                 contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
                 print("Max Width in pixels: ", max_width)
 
-                width = contour_analyzer.calculate_width(y=0, x=0, pixel_width=max_width, calibration_factor=0.001, distance=150)
+                width = contour_analyzer.calculate_width(y=thickest_points[1], x=thickest_points[0], pixel_width=max_width, calibration_factor=0.83333333333*0.001, distance=150, binary_image = binary_image)
                 print("Max Width, converted: ", width)
                 
                 prets = pt.classify_wall_damage(width)
