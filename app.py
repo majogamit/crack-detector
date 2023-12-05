@@ -32,15 +32,17 @@ css = """
 # Create the Gradio interface using defined theme and CSS
 with gr.Blocks(theme=theme, css=css) as demo:
     # Title and description for the app
-    gr.Markdown("# Concrete Crack Detection and Segmentation")
-    gr.Markdown("Upload concrete crack images and get segmented results.")
+    gr.Markdown("# Concrete Crack Segmentation and Documentation")
+    gr.Markdown("Upload concrete crack images and get segmented results with report pdf..")
     with gr.Tab('Instructions'):
         gr.Markdown(
     """**Instructions for Concrete Crack Detection and Segmentation App:**
 
     **Input:**
     - Upload one or more concrete crack images using the "Image Input" section.
-    - Adjust confidence level and distance sliders if needed.\n
+    - Adjust confidence level and distance sliders if needed.
+    - Upload reference images. (e.g. whole wall with many cracks)
+    - Input Remarks (e.g. First floor wall on the left)\n
     **Buttons:**
     - Click "Segment" to perform crack segmentation.
     - Click "Clear" to reset inputs and outputs.\n
@@ -51,7 +53,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
 
     **Additional Information:**
     - The app uses a YOLOv8 trained model for crack detection with 86.8\% accuracy.
-    - Results include orientation category, width of the crack (widest), number of cracks per photo.
+    - Results include orientation category, width of the crack (widest), number of cracks per photo, and damage level.
 
     **Notes:**
     - Ensure uploaded images are in the supported formats: PNG, JPG, JPEG, WEBP.
