@@ -12,15 +12,18 @@ from utils.measure_utils import ContourAnalyzer
 from PIL import Image
 import utils.plot as pt
 
+theme = gr.themes.Soft(
+    primary_hue="orange",
+).set(
+    body_background_fill='*primary_50',
+    block_background_fill='*neutral_50'
+)
+
 
 # Clear any previous data and configurations
 clear_all()
 model = YOLO('./weights/best.pt')
 # Define the color scheme/theme for the website
-theme = gr.themes.Soft(
-    primary_hue="orange",
-    secondary_hue="sky",
-)
 #Custom css for styling
 css = """
     .size {
@@ -126,15 +129,15 @@ with gr.Blocks(theme=theme, css=css) as demo:
         mean, eigenvectors = cv2.PCACompute(data_pts.astype(np.float32), mean=None)
         principal_orientation = np.arctan2(eigenvectors[0, 1], eigenvectors[0, 0])
 
-        if -0.05 <= principal_orientation <= 0.05:
+        if -0.09 <= principal_orientation <= 0.05:
             orientation_category = "Horizontal"
-        elif 1 <= principal_orientation <= 1.8:
+        elif 1 <= principal_orientation <= 1.99:
             orientation_category = "Vertical"
         elif -0.99 <= principal_orientation <= 0.99:
             orientation_category = "Diagonal"
         else:
             orientation_category = "Other"
-
+        
         return principal_orientation, orientation_category
 
     def load_model():
@@ -176,7 +179,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
         return np.array(input_image)
     
     
-    def predict_segmentation_im(image, conf, reference, remark):
+    def predict_segmentation_im(image, conf, reference, remark, distance):
         """
         Perform segmentation prediction on a list of images.
         
@@ -256,7 +259,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
                     contour_analyzer.draw_circle_on_image(visualized_image, (int(thickest_points[0]), int(thickest_points[1])), 5, (57, 255, 20), -1)
                     print("Max Width in pixels: ", max_width)
 
-                    width = contour_analyzer.calculate_width(y=10, x=5, pixel_width=max_width, calibration_factor=0.001, distance=150)
+                    width = contour_analyzer.calculate_width(y=thickest_points[1], x=thickest_points[0], pixel_width=max_width, calibration_factor=0.36*0.01, distance=distance)
                     print("Max Width, converted: ", width)
                     
                     prets = pt.classify_wall_damage(width)
@@ -298,7 +301,7 @@ with gr.Blocks(theme=theme, css=css) as demo:
     # Connect the buttons to the prediction function and clear function
     image_button.click(
         predict_segmentation_im,
-        inputs=[image_input, conf, image_reference, image_remark],
+        inputs=[image_input, conf, image_reference, image_remark, distance],
         outputs=[image_output, csv_image, df_image, md_result]
     )
     
@@ -311,9 +314,10 @@ with gr.Blocks(theme=theme, css=css) as demo:
             gr.DataFrame(visible=False),
             gr.Slider(value=20),
             None,
-            None
+            None,
+            gr.Slider(value=10)
         ],
-        outputs=[image_input, image_output, md_result, csv_image, df_image, conf, image_reference, image_remark]
+        outputs=[image_input, image_output, md_result, csv_image, df_image, conf, image_reference, image_remark, distance]
     )
 
 # Launch the Gradio app

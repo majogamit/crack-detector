@@ -32,7 +32,7 @@ class ContourAnalyzer:
         return max_width, thickest_section, thickest_points, distance_transforms
 
     def find_contours(self, binary_image):
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         # for debugging
         print("Number of contours:", len(contours))
@@ -43,7 +43,8 @@ class ContourAnalyzer:
 
     @staticmethod
     def calculate_width(y, x, pixel_width, calibration_factor, distance):
-        angle = math.atan2(y, x)
+        # angle = math.atan2(y, x)
+        angle=1
         width = angle * pixel_width * distance * calibration_factor
         return width
     
