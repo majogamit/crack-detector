@@ -9,7 +9,7 @@ def classify_wall_damage(crack_width):
     if crack_width <= 0.1:
         return "Negligible"
     elif 0.1 <= crack_width <= 1:
-        return "Very slight"
+        return "Very Slight"
     elif 1.1 <= crack_width  <= 5:
         return "Slight"
     elif 5 <= crack_width <= 15:
@@ -17,7 +17,7 @@ def classify_wall_damage(crack_width):
     elif 15 <= crack_width <= 25:
         return "Severe"
     elif crack_width > 25:
-        return "Very severe"
+        return "Very Severe"
     else:
         return "Invalid input"
     
@@ -25,6 +25,7 @@ def classify_wall_damage(crack_width):
 from collections import Counter
 
 def generate_html_summary(crack_list):
+    print(crack_list)
     # Define the possible damage levels
     damage_levels = ["Negligible", "Very Slight", "Slight", "Moderate", "Severe", "Very Severe"]
 
